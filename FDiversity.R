@@ -10,17 +10,38 @@ setwd("~/The Ohio State University/Thesis/Data/R/PNR/Tornado")
 t <-read.csv("Beetle2015_Traits.csv", row.names=1)
 a <-read.csv("Beetle2015_Abund.csv", row.names=1)
 
+#Convert abundance data to relative abundance
+install.packages("vegan")
+library(vegan)
+citation("vegan")
+
+#Check total abundance in each sample (i.e. row)
+apply(a, 1, sum)
+
+#Convert to relative abundance
+ra <- decostand(a, method = "total")
+
+#Check the totals for each row in the new dataset
+#All rows should equal 1
+apply(ra, 1, sum)
+
 #Check the structure of the dataset
 str(t)
-str(a)
+str(ra)
 
 #Plot the traits to see if any are redundant
 plot(t)
+cor(t, method = c("pearson"))
 
-#head width and elytra length appear correlated with other traits
+#head width, eye width, and elytra length appear correlated with other traits
 #remove redundant traits
 t2 <- t[,-2]
 t2 <- t2[,-5]
+t2 <- t2[,-3]
+
+#Plot the traits again to see if any more need to be removed
+plot(t2)
+cor(t2)
 
 install.packages("FD")
 library(FD)
@@ -29,10 +50,10 @@ citation("FD")
 
 ####################################################################################
 #community-weighted mean trait values
-#include only continuous values, i.e. not categorical traits
+#works best on continuous traits
 
 #remove dispersal ability (categorical trait) from dataset
-t3 <- t2[,-6]
+t3 <- t2[,-5]
 
 #calculate CWMs for continuous variables
 cwm <- dbFD(t3[colnames(a), ], a, w.abun = T, stand.x = T)$CWM
